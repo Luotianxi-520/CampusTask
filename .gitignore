@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+
+# pytest
+.pytest_cache/
+
+# Runtime data
+tasks.json
+campus_task.log
+trace.jsonl
+*.csv
+
+# OS
+Thumbs.db
+.DS_Store
