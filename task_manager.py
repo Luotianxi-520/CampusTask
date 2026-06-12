@@ -11,8 +11,10 @@ def get_next_id(tasks):
     return max(task["id"] for task in tasks) + 1
 
 
-def add_task(title):
-    """添加新任务，返回创建的任务对象。标题为空时抛出 ValueError。"""
+def add_task(title, deadline=None):
+    """添加新任务，返回创建的任务对象。标题为空时抛出 ValueError。
+    deadline 为可选的截止日期，格式 YYYY-MM-DD。
+    """
     if not title or not title.strip():
         raise ValueError("任务标题不能为空")
     tasks = load_tasks()
@@ -22,6 +24,8 @@ def add_task(title):
         "status": "todo",
         "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
+    if deadline:
+        task["deadline"] = deadline
     tasks.append(task)
     save_tasks(tasks)
     return task
