@@ -196,3 +196,24 @@ def test_stats_with_mixed_tasks():
     assert stats["total"] == 3
     assert stats["done"] == 2
     assert stats["todo"] == 1
+
+
+# ── deadline ─────────────────────────────────────────────
+
+def test_add_task_with_deadline():
+    """添加带截止日期的任务。"""
+    task = task_manager.add_task("提交实验报告", deadline="2026-06-30")
+    assert task["deadline"] == "2026-06-30"
+
+
+def test_add_task_without_deadline():
+    """不提供截止日期时，任务不含 deadline 字段。"""
+    task = task_manager.add_task("无截止日期任务")
+    assert "deadline" not in task
+
+
+def test_persistence_with_deadline():
+    """带 deadline 的任务持久化后数据一致。"""
+    task_manager.add_task("有截止日期", deadline="2026-12-31")
+    reloaded = storage.load_tasks()
+    assert reloaded[0]["deadline"] == "2026-12-31"
