@@ -1,5 +1,6 @@
 """任务管理模块，提供任务的增删改查等业务逻辑。"""
 
+import csv
 from datetime import datetime
 from storage import load_tasks, save_tasks
 
@@ -34,11 +35,15 @@ def add_task(title, deadline=None, priority=None):
     return task
 
 
-def list_tasks(status_filter=None):
-    """返回任务列表。status_filter 为 'todo'/'done'/None（全部）。"""
+def list_tasks(status_filter=None, sort_by=None):
+    """返回任务列表。status_filter 为 'todo'/'done'/None（全部）。
+    sort_by 为 'deadline' 时按截止日期升序排列，无 deadline 的排在末尾。
+    """
     tasks = load_tasks()
     if status_filter:
         tasks = [t for t in tasks if t["status"] == status_filter]
+    if sort_by == "deadline":
+        tasks = sorted(tasks, key=lambda t: t.get("deadline", "z"))
     return tasks
 
 
@@ -84,6 +89,17 @@ def edit_task(task_id, new_title):
             save_tasks(tasks)
             return True, f"任务 [{task_id}] 已更新: {old_title} -> {new_title.strip()}"
     return False, f"任务 [{task_id}] 不存在。"
+
+
+def export_csv(filepath):
+    """将所有任务导出为 CSV 文件。返回导出的行数。"""
+    tasks = load_tasks()
+    fieldnames = ["id", "title", "status", "created_at", "deadline", "priority"]
+    with open(filepath, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(tasks)
+    return len(tasks)
 
 
 def search_tasks(keyword):

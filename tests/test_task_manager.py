@@ -304,3 +304,60 @@ def test_persistence_with_priority():
     task_manager.add_task("高优先级", priority="high")
     reloaded = storage.load_tasks()
     assert reloaded[0]["priority"] == "high"
+
+
+# ── sort_by ─────────────────────────────────────────────
+
+def test_sort_by_deadline():
+    """按截止日期排序，有 deadline 的升序在前，无 deadline 的在后。"""
+    task_manager.add_task("无日期")
+    task_manager.add_task("晚截止", deadline="2026-12-31")
+    task_manager.add_task("早截止", deadline="2026-01-15")
+
+    tasks = task_manager.list_tasks(sort_by="deadline")
+    assert tasks[0]["deadline"] == "2026-01-15"
+    assert tasks[1]["deadline"] == "2026-12-31"
+    assert "deadline" not in tasks[2]  # 无日期的排最后
+
+
+def test_sort_mixed_with_filter():
+    """排序 + 过滤组合使用。"""
+    task_manager.add_task("待办A", deadline="2026-06-01")
+    task_manager.add_task("待办B", deadline="2026-03-01")
+    task_manager.add_task("已完成", deadline="2026-01-01")
+    task_manager.done_task(3)
+
+    tasks = task_manager.list_tasks(status_filter="todo", sort_by="deadline")
+    assert len(tasks) == 2
+    assert tasks[0]["deadline"] == "2026-03-01"
+    assert tasks[1]["deadline"] == "2026-06-01"
+
+
+# ── export_csv ──────────────────────────────────────────
+
+def test_export_csv_empty(tmp_path):
+    """无任务时导出空 CSV（仅含表头）。"""
+    filepath = str(tmp_path / "empty.csv")
+    count = task_manager.export_csv(filepath)
+    assert count == 0
+    with open(filepath, "r", encoding="utf-8-sig") as f:
+        content = f.read()
+    assert "id,title,status,created_at,deadline,priority" in content
+
+
+def test_export_csv_with_tasks(tmp_path):
+    """导出包含多条任务的 CSV。"""
+    task_manager.add_task("任务A", deadline="2026-06-01", priority="high")
+    task_manager.add_task("任务B")
+    filepath = str(tmp_path / "tasks.csv")
+
+    count = task_manager.export_csv(filepath)
+    assert count == 2
+
+    with open(filepath, "r", encoding="utf-8-sig") as f:
+        lines = f.readlines()
+    assert len(lines) == 3  # header + 2 tasks
+    assert "任务A" in lines[1]
+    assert "2026-06-01" in lines[1]
+    assert "high" in lines[1]
+    assert "任务B" in lines[2]

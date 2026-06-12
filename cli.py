@@ -8,11 +8,12 @@ def print_usage():
     """输出使用说明。"""
     print("用法:")
     print("  python main.py add <任务标题>")
-    print("  python main.py list [--status done|todo]")
+    print("  python main.py list [--status done|todo] [--sort deadline]")
     print("  python main.py done <任务编号>")
     print("  python main.py delete <任务编号>")
     print("  python main.py search <关键词>")
     print("  python main.py edit <任务编号> <新标题>")
+    print("  python main.py export <文件路径>")
     print("  python main.py stats")
 
 
@@ -43,12 +44,14 @@ def handle_add(args):
 
 def handle_list(args=None):
     status_filter = None
+    sort_by = None
     if args:
         for i, arg in enumerate(args):
             if arg == "--status" and i + 1 < len(args):
                 status_filter = args[i + 1]
-                break
-    tasks = tm.list_tasks(status_filter=status_filter)
+            elif arg == "--sort" and i + 1 < len(args):
+                sort_by = args[i + 1]
+    tasks = tm.list_tasks(status_filter=status_filter, sort_by=sort_by)
     if not tasks:
         label = status_filter if status_filter else "任何"
         print(f"暂无{label}任务。")
@@ -107,6 +110,15 @@ def handle_edit(args):
     print(message)
 
 
+def handle_export(args):
+    if len(args) < 1:
+        print("请提供文件路径。用法: python main.py export <文件路径>")
+        return
+    filepath = args[0]
+    count = tm.export_csv(filepath)
+    print(f"已导出 {count} 条任务到 {filepath}")
+
+
 def handle_search(args):
     if len(args) < 1:
         print("请提供搜索关键词。用法: python main.py search <关键词>")
@@ -135,6 +147,7 @@ COMMANDS = {
     "done": handle_done,
     "delete": handle_delete,
     "edit": handle_edit,
+    "export": handle_export,
     "search": handle_search,
     "stats": handle_stats,
 }
@@ -152,7 +165,7 @@ def dispatch(command, args):
             handler(args)
     else:
         print(f"未知命令: {command}")
-        print("可用命令: add, list, done, delete, edit, search, stats")
+        print("可用命令: add, list, done, delete, edit, export, search, stats")
 
 
 def main(argv=None):
