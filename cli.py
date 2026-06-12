@@ -20,7 +20,11 @@ def handle_add(args):
         print("请提供任务标题。用法: python main.py add <任务标题>")
         return
     title = args[0]
-    task = tm.add_task(title)
+    try:
+        task = tm.add_task(title)
+    except ValueError as e:
+        print(str(e))
+        return
     print(f"已添加任务 [{task['id']}]: {task['title']}")
 
 

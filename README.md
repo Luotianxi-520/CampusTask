@@ -1,154 +1,124 @@
-# CampusTask — 校园任务清单（模块化重构）
+# CampusTask — 自动化测试（pytest）
 
-命令行任务管理工具，支持添加、查看、标记完成、删除、搜索和统计任务。数据持久化到 `tasks.json`。
-
-实验一的基础上进行模块化重构，解耦数据存储、业务逻辑和命令行接口。
+为 CampusTask 模块化版本编写 22 个自动化测试用例，覆盖核心功能和边界条件。
 
 ## 项目结构
 
 ```
-实验二/
-├── main.py           # 程序入口
-├── cli.py            # 命令行参数解析与命令分发
-├── task_manager.py   # 业务逻辑（增删改查、统计）
-├── storage.py        # JSON 文件读写
-└── tasks.json        # 任务数据（运行时自动生成）
-```
-
-## 使用方法
-
-```bash
-# 添加任务
-python main.py add "完成软件工程实验2"
-
-# 查看所有任务
-python main.py list
-
-# 完成任务（1 为任务编号）
-python main.py done 1
-
-# 删除任务
-python main.py delete 1
-
-# 搜索任务（支持模糊匹配）
-python main.py search "实验"
-
-# 统计信息
-python main.py stats
-```
-
-## 数据结构
-
-每个任务包含以下字段：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | int | 任务编号，唯一且递增 |
-| title | string | 任务标题 |
-| status | string | todo（待办）或 done（已完成） |
-| created_at | string | 创建时间，格式 YYYY-MM-DD HH:MM:SS |
-
-## 架构关系图
-
-### 模块依赖关系
-
-```mermaid
-graph TD
-    subgraph 入口层
-        MAIN[main.py<br/>程序入口]
-    end
-
-    subgraph 表示层
-        CLI[cli.py<br/>命令行解析 / 输出格式化]
-    end
-
-    subgraph 业务逻辑层
-        TM[task_manager.py<br/>任务增删改查 / 统计]
-    end
-
-    subgraph 数据持久层
-        STORAGE[storage.py<br/>JSON 读写]
-    end
-
-    subgraph 外部存储
-        FILE[(tasks.json<br/>任务数据文件)]
-    end
-
-    MAIN -->|import| CLI
-    CLI -->|调用| TM
-    TM -->|import| STORAGE
-    STORAGE -->|读写| FILE
-
-    style MAIN fill:#f9f,stroke:#333
-    style CLI fill:#bbf,stroke:#333
-    style TM fill:#bfb,stroke:#333
-    style STORAGE fill:#fbb,stroke:#333
-    style FILE fill:#ddd,stroke:#333
-```
-
-### 命令执行流程（以 `add` 为例）
-
-```mermaid
-sequenceDiagram
-    actor User
-    participant main.py
-    participant cli.py
-    participant task_manager.py
-    participant storage.py
-    participant tasks.json
-
-    User->>main.py: python main.py add "提交实验报告"
-    main.py->>cli.py: main()
-    cli.py->>cli.py: 解析 sys.argv<br/>command="add", args=["提交实验报告"]
-    cli.py->>task_manager.py: add_task("提交实验报告")
-    task_manager.py->>storage.py: load_tasks()
-    storage.py->>tasks.json: 读取
-    tasks.json-->>storage.py: 任务列表
-    storage.py-->>task_manager.py: 任务列表
-    task_manager.py->>task_manager.py: 生成新 ID、创建 task 对象
-    task_manager.py->>storage.py: save_tasks(tasks)
-    storage.py->>tasks.json: 写入
-    task_manager.py-->>cli.py: 返回 task 对象
-    cli.py->>User: 输出 "已添加任务 [1]: 提交实验报告"
-```
-
-### 项目文件结构
-
-```
-实验二/
-├── main.py           # 程序入口，仅负责启动
-├── cli.py            # 命令行解析、命令分发、结果输出
-├── task_manager.py   # 核心业务逻辑（增删改查 + 统计）
-├── storage.py        # JSON 文件读写，可替换为数据库
-├── tasks.json        # 任务数据（运行时自动生成）
-├── .venv/            # Python 虚拟环境
+实验三/
+├── main.py              # 程序入口
+├── cli.py               # 命令行接口
+├── task_manager.py      # 业务逻辑（含空标题校验）
+├── storage.py           # JSON 持久化（含损坏文件处理）
+├── tests/
+│   ├── __init__.py
+│   ├── test_storage.py      # 4 个存储层测试
+│   └── test_task_manager.py # 18 个业务逻辑测试
+├── .venv/               # 虚拟环境
 └── README.md
 ```
 
-## 模块职责
+## 运行测试
 
-| 模块 | 职责 | 对外接口 |
-|------|------|----------|
-| storage | JSON 文件读写 | load_tasks(), save_tasks() |
-| task_manager | 业务逻辑 | add_task(), list_tasks(), done_task(), delete_task(), search_tasks(), get_stats() |
-| cli | 命令行解析与输出 | main(), dispatch(), print_usage() |
+```bash
+cd 实验三
+python -m venv .venv
+.venv/Scripts/pip install pytest
+.venv/Scripts/python -m pytest tests/ -v
+```
+
+## 测试用例清单
+
+### test_storage.py（存储层 — 4 个）
+
+| # | 测试 | 覆盖场景 |
+|---|------|----------|
+| 1 | test_load_tasks_file_not_exists | JSON 文件不存在 → 返回空列表 |
+| 2 | test_save_and_load_tasks | 保存后重新加载 → 数据一致 |
+| 3 | test_load_corrupt_json | JSON 格式损坏 → 返回空列表 |
+| 4 | test_save_tasks_creates_file | 保存时自动创建文件 |
+
+### test_task_manager.py（业务层 — 18 个）
+
+| # | 测试 | 覆盖场景 |
+|---|------|----------|
+| 5 | test_add_task_success | 正常添加任务 |
+| 6 | test_add_task_empty_title | 空字符串 → ValueError |
+| 7 | test_add_task_whitespace_title | 纯空白 → ValueError |
+| 8 | test_list_empty | 无任务返回空列表 |
+| 9 | test_list_with_tasks | 多任务列表正确 |
+| 10 | test_done_existing_task | 完成存在的任务 |
+| 11 | test_done_nonexistent_task | 完成不存在的任务 |
+| 12 | test_done_already_done_task | 重复完成已完成任务 |
+| 13 | test_delete_existing_task | 删除存在的任务 |
+| 14 | test_delete_nonexistent_task | 删除不存在的任务 |
+| 15 | test_id_auto_increment | ID 自动递增 |
+| 16 | test_id_no_reuse_after_delete | 删除后不重用编号 |
+| 17 | test_persistence_round_trip | 保存→加载数据完整 |
+| 18 | test_search_exact_match | 精确关键词搜索 |
+| 19 | test_search_case_insensitive | 搜索不区分大小写 |
+| 20 | test_search_no_match | 无匹配返回空 |
+| 21 | test_stats_empty | 空数据统计 |
+| 22 | test_stats_with_mixed_tasks | 混合状态统计 |
+
+## Bug 修复流程
+
+按要求"先引入 bug → 测试失败 → 修复 → 重测通过"：
+
+### Bug 1：空标题未校验
+
+**初始状态**：`task_manager.add_task("")` 可以成功创建空标题任务。
+
+**失败测试**（首次运行）：
+```
+FAILED tests/test_task_manager.py::test_add_task_empty_title
+FAILED tests/test_task_manager.py::test_add_task_whitespace_title
+```
+
+**修复**：`task_manager.py:14-16` — 在 `add_task()` 开头添加：
+```python
+if not title or not title.strip():
+    raise ValueError("任务标题不能为空")
+```
+
+### Bug 2：损坏 JSON 直接崩溃
+
+**初始状态**：`tasks.json` 被手动破坏后，`load_tasks()` 抛出 `JSONDecodeError` 导致程序崩溃。
+
+**失败测试**（首次运行）：
+```
+FAILED tests/test_storage.py::test_load_corrupt_json
+```
+
+**修复**：`storage.py:13-16` — 用 `try/except json.JSONDecodeError` 包裹：
+```python
+try:
+    with open(TASKS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+except json.JSONDecodeError:
+    return []
+```
+
+### 修复后结果
+
+```
+22 passed in 0.32s
+```
 
 ## 实验反思
 
-**问题：模块化重构解决了什么问题？代价是什么？**
+**问题：为什么测试要在编码之前？**
 
-重构前，所有代码在 `main.py` 一个文件里——数据读写、业务逻辑、参数解析和输出全部耦合在一起。加一个命令要在同一个文件里改三处（解析、逻辑、输出），一旦忘了某处就会引入 bug。
+测试不是"写完代码后再补的证明"，而是"写代码前先定的合同"。
 
-模块化之后，职责边界清晰：
+在实验三中这个过程很清晰：先写测试用例，明确"空标题必须抛异常"、"损坏 JSON 必须返回空列表"，然后运行 → 失败 → 修复代码 → 通过。测试充当了需求的精确表达——`pytest.raises(ValueError, match="任务标题不能为空")` 比口头描述"应该拒绝空标题"更精确且不可误解。
 
-- **storage** 只管文件，换了存储方式（比如 SQLite）只需改这一个文件。
-- **task_manager** 只管数据操作，不关心输入来源和输出格式。
-- **cli** 只管命令行交互，不关心数据怎么存的。
+实际工程中，如果没有测试，修复 bug 时无法确认：
+- 修复真的有效（而不是碰巧不报错了）
+- 修复没有引入新 bug（已有测试会告诉你）
 
-代价是文件变多了，一个小功能跨越 3 个模块，新人需要花几分钟理解调用链。但这个代价是值得的——实验一中不过 5 个命令 70 行代码，模块化收益不明显；假设继续加了 20 个命令、换了数据库、加上 Web 接口，单文件的复杂度会指数增长。模块化本质上是用初期的少量结构成本，换取长期的可维护性。
+22 个测试在 0.32 秒内跑完，每一次代码改动都能立刻知道是否破坏了已有功能——这就是安全网的价值。
 
-**模块化设计的关键决策：**
+**为什么 `isolate_storage` 是必须的？**
 
-- 业务逻辑函数返回数据（或 (success, message) 元组），不直接 print，让 cli 负责输出——这样 task_manager 可被其他接口（Web、GUI）复用。
-- 入口 `main.py` 只有 4 行，不参与任何逻辑——入口就只该是入口。
-- `COMMANDS` 字典做命令分发，新增命令只需加一个 handler 和一行注册，不会影响已有命令。
+每个测试使用独立的临时 JSON 文件（`tmp_path` + `monkeypatch`），测试之间互不干扰。如果不隔离，测试的执行顺序会影响结果（一个测试的残留数据会导致另一个测试意外通过或失败），让测试变得不可靠。可靠的测试必须是确定性的：给定相同代码，每次运行结果相同。

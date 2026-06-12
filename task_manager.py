@@ -12,7 +12,9 @@ def get_next_id(tasks):
 
 
 def add_task(title):
-    """添加新任务，返回创建的任务对象。"""
+    """添加新任务，返回创建的任务对象。标题为空时抛出 ValueError。"""
+    if not title or not title.strip():
+        raise ValueError("任务标题不能为空")
     tasks = load_tasks()
     task = {
         "id": get_next_id(tasks),
