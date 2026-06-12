@@ -217,3 +217,24 @@ def test_persistence_with_deadline():
     task_manager.add_task("有截止日期", deadline="2026-12-31")
     reloaded = storage.load_tasks()
     assert reloaded[0]["deadline"] == "2026-12-31"
+
+
+# ── priority ─────────────────────────────────────────────
+
+def test_add_task_with_priority():
+    """添加带优先级的任务。"""
+    task = task_manager.add_task("紧急任务", priority="high")
+    assert task["priority"] == "high"
+
+
+def test_add_task_without_priority():
+    """不提供优先级时，任务不含 priority 字段。"""
+    task = task_manager.add_task("普通任务")
+    assert "priority" not in task
+
+
+def test_persistence_with_priority():
+    """带 priority 的任务持久化后数据一致。"""
+    task_manager.add_task("高优先级", priority="high")
+    reloaded = storage.load_tasks()
+    assert reloaded[0]["priority"] == "high"

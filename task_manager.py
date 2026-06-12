@@ -11,9 +11,10 @@ def get_next_id(tasks):
     return max(task["id"] for task in tasks) + 1
 
 
-def add_task(title, deadline=None):
+def add_task(title, deadline=None, priority=None):
     """添加新任务，返回创建的任务对象。标题为空时抛出 ValueError。
     deadline 为可选的截止日期，格式 YYYY-MM-DD。
+    priority 为可选的优先级: high / medium / low。
     """
     if not title or not title.strip():
         raise ValueError("任务标题不能为空")
@@ -26,6 +27,8 @@ def add_task(title, deadline=None):
     }
     if deadline:
         task["deadline"] = deadline
+    if priority:
+        task["priority"] = priority
     tasks.append(task)
     save_tasks(tasks)
     return task

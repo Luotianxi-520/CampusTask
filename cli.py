@@ -7,7 +7,7 @@ import task_manager as tm
 def print_usage():
     """输出使用说明。"""
     print("用法:")
-    print("  python main.py add <任务标题> [--deadline YYYY-MM-DD]")
+    print("  python main.py add <任务标题> [--deadline YYYY-MM-DD] [--priority high|medium|low]")
     print("  python main.py list")
     print("  python main.py done <任务编号>")
     print("  python main.py delete <任务编号>")
@@ -17,21 +17,26 @@ def print_usage():
 
 def handle_add(args):
     if len(args) < 1:
-        print("请提供任务标题。用法: python main.py add <任务标题> [--deadline YYYY-MM-DD]")
+        print("请提供任务标题。用法: python main.py add <任务标题> [--deadline YYYY-MM-DD] [--priority high|medium|low]")
         return
     title = args[0]
     deadline = None
+    priority = None
     for i, arg in enumerate(args):
         if arg == "--deadline" and i + 1 < len(args):
             deadline = args[i + 1]
+        elif arg == "--priority" and i + 1 < len(args):
+            priority = args[i + 1]
     try:
-        task = tm.add_task(title, deadline=deadline)
+        task = tm.add_task(title, deadline=deadline, priority=priority)
     except ValueError as e:
         print(str(e))
         return
     msg = f"已添加任务 [{task['id']}]: {task['title']}"
     if deadline:
         msg += f" (截止: {deadline})"
+    if priority:
+        msg += f" (优先级: {priority})"
     print(msg)
 
 
@@ -45,6 +50,8 @@ def handle_list(args=None):
         line = f"  [{status}] {task['id']}. {task['title']} ({task['created_at']})"
         if task.get("deadline"):
             line += f"  截止: {task['deadline']}"
+        if task.get("priority"):
+            line += f"  [{task['priority']}]"
         print(line)
 
 
