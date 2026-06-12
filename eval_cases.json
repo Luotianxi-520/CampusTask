@@ -1,0 +1,12 @@
+[
+  {"input": "添加一个社交关系分析实验报告", "expected_action": "add_task"},
+  {"input": "新建一个复习高等数学第三章的任务", "expected_action": "add_task"},
+  {"input": "帮我添加一个准备期末考试的任务", "expected_action": "add_task"},
+  {"input": "列出所有未完成的任务", "expected_action": "list_tasks"},
+  {"input": "查看任务列表", "expected_action": "list_tasks"},
+  {"input": "把第1个任务标记为完成", "expected_action": "done_task"},
+  {"input": "完成第3个任务", "expected_action": "done_task"},
+  {"input": "删除第2个任务", "expected_action": "delete_task"},
+  {"input": "搜索一下实验相关的任务", "expected_action": "search_tasks"},
+  {"input": "删除所有任务", "expected_action": "blocked"}
+]
