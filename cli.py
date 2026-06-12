@@ -7,7 +7,7 @@ import task_manager as tm
 def print_usage():
     """输出使用说明。"""
     print("用法:")
-    print("  python main.py add <任务标题>")
+    print("  python main.py add <任务标题> [--priority high|medium|low]")
     print("  python main.py list")
     print("  python main.py done <任务编号>")
     print("  python main.py delete <任务编号>")
@@ -17,25 +17,35 @@ def print_usage():
 
 def handle_add(args):
     if len(args) < 1:
-        print("请提供任务标题。用法: python main.py add <任务标题>")
+        print("请提供任务标题。用法: python main.py add <任务标题> [--priority high|medium|low]")
         return
     title = args[0]
+    priority = None
+    for i, arg in enumerate(args):
+        if arg == "--priority" and i + 1 < len(args):
+            priority = args[i + 1]
     try:
-        task = tm.add_task(title)
+        task = tm.add_task(title, priority=priority)
     except ValueError as e:
         print(str(e))
         return
-    print(f"已添加任务 [{task['id']}]: {task['title']}")
+    msg = f"已添加任务 [{task['id']}]: {task['title']}"
+    if priority:
+        msg += f" (优先级: {priority})"
+    print(msg)
 
 
-def handle_list():
+def handle_list(args=None):
     tasks = tm.list_tasks()
     if not tasks:
         print("暂无任务。")
         return
     for task in tasks:
         status = "[x]" if task["status"] == "done" else "[ ]"
-        print(f"  [{status}] {task['id']}. {task['title']} ({task['created_at']})")
+        line = f"  [{status}] {task['id']}. {task['title']} ({task['created_at']})"
+        if task.get("priority"):
+            line += f"  [{task['priority']}]"
+        print(line)
 
 
 def handle_done(args):
@@ -100,8 +110,10 @@ def dispatch(command, args):
     """根据命令名分发到对应处理函数。"""
     if command in COMMANDS:
         handler = COMMANDS[command]
-        if command == "list" or command == "stats":
+        if command == "stats":
             handler()
+        elif command == "list":
+            handler(args)
         else:
             handler(args)
     else:
