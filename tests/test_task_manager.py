@@ -62,6 +62,37 @@ def test_list_with_tasks():
     assert [t["title"] for t in tasks] == ["任务A", "任务B", "任务C"]
 
 
+def test_list_filter_todo():
+    """按状态过滤 — 只显示待办任务。"""
+    task_manager.add_task("待办A")
+    task_manager.add_task("待办B")
+    task_manager.done_task(2)
+
+    tasks = task_manager.list_tasks(status_filter="todo")
+    assert len(tasks) == 1
+    assert tasks[0]["title"] == "待办A"
+
+
+def test_list_filter_done():
+    """按状态过滤 — 只显示已完成任务。"""
+    task_manager.add_task("完成A")
+    task_manager.done_task(1)
+
+    tasks = task_manager.list_tasks(status_filter="done")
+    assert len(tasks) == 1
+    assert tasks[0]["title"] == "完成A"
+
+
+def test_list_filter_none():
+    """不传 filter 时返回全部任务。"""
+    task_manager.add_task("任务1")
+    task_manager.add_task("任务2")
+    task_manager.done_task(1)
+
+    tasks = task_manager.list_tasks()
+    assert len(tasks) == 2
+
+
 # ── done_task ─────────────────────────────────────────────
 
 def test_done_existing_task():
@@ -112,6 +143,41 @@ def test_delete_nonexistent_task():
 
     assert success is False
     assert "不存在" in msg
+
+
+# ── edit_task ────────────────────────────────────────────
+
+def test_edit_existing_task():
+    """修改存在任务的标题。"""
+    task_manager.add_task("原标题")
+    success, msg = task_manager.edit_task(1, "新标题")
+
+    assert success is True
+    assert "已更新" in msg
+    tasks = storage.load_tasks()
+    assert tasks[0]["title"] == "新标题"
+
+
+def test_edit_nonexistent_task():
+    """修改不存在任务返回 success=False。"""
+    success, msg = task_manager.edit_task(999, "新标题")
+
+    assert success is False
+    assert "不存在" in msg
+
+
+def test_edit_empty_title():
+    """修改为空标题时抛出 ValueError。"""
+    task_manager.add_task("任务")
+    with pytest.raises(ValueError, match="任务标题不能为空"):
+        task_manager.edit_task(1, "")
+
+
+def test_edit_whitespace_title():
+    """修改为纯空白标题时抛出 ValueError。"""
+    task_manager.add_task("任务")
+    with pytest.raises(ValueError, match="任务标题不能为空"):
+        task_manager.edit_task(1, "   ")
 
 
 # ── ID 管理 ───────────────────────────────────────────────

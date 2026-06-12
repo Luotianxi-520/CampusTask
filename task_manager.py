@@ -34,9 +34,12 @@ def add_task(title, deadline=None, priority=None):
     return task
 
 
-def list_tasks():
-    """返回所有任务列表。"""
-    return load_tasks()
+def list_tasks(status_filter=None):
+    """返回任务列表。status_filter 为 'todo'/'done'/None（全部）。"""
+    tasks = load_tasks()
+    if status_filter:
+        tasks = [t for t in tasks if t["status"] == status_filter]
+    return tasks
 
 
 def done_task(task_id):
@@ -64,6 +67,22 @@ def delete_task(task_id):
             removed = tasks.pop(i)
             save_tasks(tasks)
             return True, f"任务 [{task_id}] 已删除: {removed['title']}"
+    return False, f"任务 [{task_id}] 不存在。"
+
+
+def edit_task(task_id, new_title):
+    """修改指定编号任务的标题。
+    返回 (success, message) 元组。
+    """
+    if not new_title or not new_title.strip():
+        raise ValueError("任务标题不能为空")
+    tasks = load_tasks()
+    for task in tasks:
+        if task["id"] == task_id:
+            old_title = task["title"]
+            task["title"] = new_title.strip()
+            save_tasks(tasks)
+            return True, f"任务 [{task_id}] 已更新: {old_title} -> {new_title.strip()}"
     return False, f"任务 [{task_id}] 不存在。"
 
 

@@ -7,11 +7,12 @@ import task_manager as tm
 def print_usage():
     """输出使用说明。"""
     print("用法:")
-    print("  python main.py add <任务标题> [--deadline YYYY-MM-DD] [--priority high|medium|low]")
-    print("  python main.py list")
+    print("  python main.py add <任务标题>")
+    print("  python main.py list [--status done|todo]")
     print("  python main.py done <任务编号>")
     print("  python main.py delete <任务编号>")
     print("  python main.py search <关键词>")
+    print("  python main.py edit <任务编号> <新标题>")
     print("  python main.py stats")
 
 
@@ -41,9 +42,16 @@ def handle_add(args):
 
 
 def handle_list(args=None):
-    tasks = tm.list_tasks()
+    status_filter = None
+    if args:
+        for i, arg in enumerate(args):
+            if arg == "--status" and i + 1 < len(args):
+                status_filter = args[i + 1]
+                break
+    tasks = tm.list_tasks(status_filter=status_filter)
     if not tasks:
-        print("暂无任务。")
+        label = status_filter if status_filter else "任何"
+        print(f"暂无{label}任务。")
         return
     for task in tasks:
         status = "[x]" if task["status"] == "done" else "[ ]"
@@ -81,6 +89,24 @@ def handle_delete(args):
     print(message)
 
 
+def handle_edit(args):
+    if len(args) < 2:
+        print("请提供任务编号和新标题。用法: python main.py edit <任务编号> <新标题>")
+        return
+    try:
+        task_id = int(args[0])
+    except ValueError:
+        print("任务编号必须是整数。")
+        return
+    new_title = args[1]
+    try:
+        success, message = tm.edit_task(task_id, new_title)
+    except ValueError as e:
+        print(str(e))
+        return
+    print(message)
+
+
 def handle_search(args):
     if len(args) < 1:
         print("请提供搜索关键词。用法: python main.py search <关键词>")
@@ -108,6 +134,7 @@ COMMANDS = {
     "list": handle_list,
     "done": handle_done,
     "delete": handle_delete,
+    "edit": handle_edit,
     "search": handle_search,
     "stats": handle_stats,
 }
@@ -125,7 +152,7 @@ def dispatch(command, args):
             handler(args)
     else:
         print(f"未知命令: {command}")
-        print("可用命令: add, list, done, delete, search, stats")
+        print("可用命令: add, list, done, delete, edit, search, stats")
 
 
 def main(argv=None):
