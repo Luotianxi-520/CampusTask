@@ -1,8 +1,11 @@
 """任务管理模块，提供任务的增删改查等业务逻辑。"""
 
 import csv
+import logging
 from datetime import datetime
-from storage import load_tasks, save_tasks
+from .storage import load_tasks, save_tasks
+
+logger = logging.getLogger("campus_task.task_manager")
 
 
 def get_next_id(tasks):
@@ -32,6 +35,7 @@ def add_task(title, deadline=None, priority=None):
         task["priority"] = priority
     tasks.append(task)
     save_tasks(tasks)
+    logger.info(f"添加任务 [{task['id']}]: {task['title']}")
     return task
 
 

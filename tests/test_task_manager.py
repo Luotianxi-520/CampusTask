@@ -4,8 +4,7 @@ import os
 
 import pytest
 
-import task_manager
-import storage
+from campus_task import task_manager, storage
 
 
 @pytest.fixture(autouse=True)

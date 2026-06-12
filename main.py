@@ -3,7 +3,7 @@
 入口模块，负责启动命令行程序。
 """
 
-from cli import main
+from campus_task.cli import main
 
 if __name__ == "__main__":
     main()

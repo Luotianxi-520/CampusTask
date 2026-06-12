@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-import storage
+from campus_task import storage
 
 
 def test_load_tasks_file_not_exists(tmp_path, monkeypatch):
@@ -56,3 +56,15 @@ def test_save_tasks_creates_file(tmp_path, monkeypatch):
     with open(test_file, "r", encoding="utf-8") as f:
         data = json.load(f)
     assert len(data) == 1
+
+
+def test_load_empty_file(tmp_path, monkeypatch):
+    """tasks.json 为空文件时不崩溃，应返回空列表。"""
+    empty_file = str(tmp_path / "empty.json")
+    with open(empty_file, "w", encoding="utf-8") as f:
+        f.write("")  # 空文件
+
+    monkeypatch.setattr(storage, "TASKS_FILE", empty_file)
+    tasks = storage.load_tasks()
+
+    assert tasks == []
