@@ -5,7 +5,7 @@
 ## 项目结构
 
 ```
-实验七/
+CampusTask/
 ├── campus_task/                  # 可安装的 Python 包
 │   ├── __init__.py               # 包初始化 + 日志配置 + 版本号
 │   ├── __main__.py               # python -m campus_task 入口
@@ -26,9 +26,8 @@
 ## 安装与使用
 
 ```bash
-cd 实验七
 python -m venv .venv
-.venv/Scripts/pip install -e .
+.venv/Scripts/python -m pip install -e .
 
 # 以包方式运行
 python -m campus_task --version    # campus-task 0.2.1
@@ -99,7 +98,7 @@ def test_load_empty_file(tmp_path, monkeypatch):
 ## 运行测试
 
 ```bash
-.venv/Scripts/pip install -e .
+.venv/Scripts/python -m pip install -e .
 .venv/Scripts/python -m pytest tests/ -v
 # 40 passed in 0.81s
 ```

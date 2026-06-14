@@ -3,10 +3,9 @@
 ## 安装
 
 ```bash
-# 克隆仓库后
-cd 实验七
+# 克隆仓库后，进入项目目录
 python -m venv .venv
-.venv/Scripts/pip install -e .
+.venv/Scripts/python -m pip install -e .
 ```
 
 ## 快速开始
