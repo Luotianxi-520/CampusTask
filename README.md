@@ -5,7 +5,7 @@
 ## 项目结构
 
 ```
-实验三/
+CampusTask/
 ├── main.py              # 程序入口
 ├── cli.py               # 命令行接口
 ├── task_manager.py      # 业务逻辑（含空标题校验）
@@ -21,9 +21,8 @@
 ## 运行测试
 
 ```bash
-cd 实验三
 python -m venv .venv
-.venv/Scripts/pip install pytest
+.venv/Scripts/python -m pip install pytest
 .venv/Scripts/python -m pytest tests/ -v
 ```
 
