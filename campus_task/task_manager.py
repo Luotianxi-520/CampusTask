@@ -39,15 +39,25 @@ def add_task(title, deadline=None, priority=None):
     return task
 
 
-def list_tasks(status_filter=None, sort_by=None):
+PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+
+
+def list_tasks(status_filter=None, sort_by=None, overdue_only=False):
     """返回任务列表。status_filter 为 'todo'/'done'/None（全部）。
-    sort_by 为 'deadline' 时按截止日期升序排列，无 deadline 的排在末尾。
+    sort_by 为 'deadline' 时按截止日期升序排列，为 'priority' 时按优先级排列。
+    overdue_only 为 True 时只返回已逾期的待办任务。
     """
     tasks = load_tasks()
     if status_filter:
         tasks = [t for t in tasks if t["status"] == status_filter]
+    if overdue_only:
+        today = datetime.now().strftime("%Y-%m-%d")
+        tasks = [t for t in tasks
+                 if t.get("deadline") and t["deadline"] < today and t["status"] == "todo"]
     if sort_by == "deadline":
         tasks = sorted(tasks, key=lambda t: t.get("deadline", "z"))
+    elif sort_by == "priority":
+        tasks = sorted(tasks, key=lambda t: PRIORITY_ORDER.get(t.get("priority"), 99))
     return tasks
 
 

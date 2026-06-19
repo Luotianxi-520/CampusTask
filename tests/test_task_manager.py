@@ -360,3 +360,75 @@ def test_export_csv_with_tasks(tmp_path):
     assert "2026-06-01" in lines[1]
     assert "high" in lines[1]
     assert "任务B" in lines[2]
+
+
+# ── sort_by priority ──────────────────────────────────────
+
+def test_sort_by_priority():
+    task_manager.add_task("普通任务")
+    task_manager.add_task("低优先级", priority="low")
+    task_manager.add_task("高优先级", priority="high")
+    task_manager.add_task("中优先级", priority="medium")
+
+    tasks = task_manager.list_tasks(sort_by="priority")
+    assert tasks[0]["priority"] == "high"
+    assert tasks[1]["priority"] == "medium"
+    assert tasks[2]["priority"] == "low"
+    assert "priority" not in tasks[3]
+
+
+def test_sort_by_priority_with_filter():
+    task_manager.add_task("待办高", priority="high")
+    task_manager.add_task("待办低", priority="low")
+    task_manager.add_task("已完成中", priority="medium")
+    task_manager.done_task(3)
+
+    tasks = task_manager.list_tasks(status_filter="todo", sort_by="priority")
+    assert len(tasks) == 2
+    assert tasks[0]["priority"] == "high"
+    assert tasks[1]["priority"] == "low"
+
+
+# ── overdue ───────────────────────────────────────────────
+
+def test_overdue_no_tasks():
+    tasks = task_manager.list_tasks(overdue_only=True)
+    assert tasks == []
+
+
+def test_overdue_no_deadline():
+    task_manager.add_task("无日期任务")
+    tasks = task_manager.list_tasks(overdue_only=True)
+    assert tasks == []
+
+
+def test_overdue_future_deadline():
+    task_manager.add_task("未来任务", deadline="2099-12-31")
+    tasks = task_manager.list_tasks(overdue_only=True)
+    assert tasks == []
+
+
+def test_overdue_past_deadline():
+    task_manager.add_task("逾期任务", deadline="2020-01-01")
+    tasks = task_manager.list_tasks(overdue_only=True)
+    assert len(tasks) == 1
+    assert tasks[0]["title"] == "逾期任务"
+
+
+def test_overdue_done_not_included():
+    task_manager.add_task("逾期但已完成", deadline="2020-01-01")
+    task_manager.done_task(1)
+    tasks = task_manager.list_tasks(overdue_only=True)
+    assert tasks == []
+
+
+def test_overdue_mixed():
+    task_manager.add_task("逾期待办1", deadline="2020-01-01")
+    task_manager.add_task("未来待办", deadline="2099-12-31")
+    task_manager.add_task("逾期已完成", deadline="2020-01-01")
+    task_manager.add_task("无日期")
+    task_manager.done_task(3)
+
+    tasks = task_manager.list_tasks(overdue_only=True)
+    assert len(tasks) == 1
+    assert tasks[0]["title"] == "逾期待办1"

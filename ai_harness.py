@@ -14,7 +14,7 @@ AVAILABLE_ACTIONS = {
     },
     "list_tasks": {
         "description": "查看任务列表",
-        "params": {},
+        "params": {"status_filter": "str? (todo/done)", "sort_by": "str? (deadline/priority)", "overdue_only": "bool?"},
     },
     "done_task": {
         "description": "标记任务为完成",
@@ -115,6 +115,16 @@ def mock_model(prompt):
         return json.dumps({"action": "add_task", "args": {"title": title, "deadline": deadline, "priority": priority}}, ensure_ascii=False)
 
     if any(w in user_input for w in ["查看", "列出", "显示", "列表", "有哪些", "看看"]):
+        sort_by = None
+        overdue_only = False
+        if any(w in user_input for w in ["优先级", "重要程度"]):
+            sort_by = "priority"
+        elif any(w in user_input for w in ["截止", "日期", "时间", "deadline"]) and any(w in user_input for w in ["排序", "先后", "顺序"]):
+            sort_by = "deadline"
+        if any(w in user_input for w in ["逾期", "过期", "过了截止", "超期", "错过"]):
+            overdue_only = True
+        if sort_by or overdue_only:
+            return json.dumps({"action": "list_tasks", "args": {"sort_by": sort_by, "overdue_only": overdue_only}}, ensure_ascii=False)
         return '{"action": "list_tasks", "args": {}}'
 
     if any(w in user_input for w in ["统计", "状态", "总结", "进度"]):
@@ -175,12 +185,17 @@ def execute_tool(action, args):
         return f"已添加任务 [{task['id']}]: {task['title']}"
 
     elif action == "list_tasks":
-        tasks = tm.list_tasks()
+        tasks = tm.list_tasks(
+            status_filter=args.get("status_filter"),
+            sort_by=args.get("sort_by"),
+            overdue_only=args.get("overdue_only", False),
+        )
         if not tasks:
-            return "暂无任务。"
+            label = "逾期" if args.get("overdue_only") else ""
+            return f"暂无{label}任务。" if label else "暂无任务。"
         lines = []
         for t in tasks:
-            mark = "✓" if t["status"] == "done" else "○"
+            mark = "[x]" if t["status"] == "done" else "[ ]"
             line = f"[{mark}] {t['id']}. {t['title']}"
             if t.get("deadline"):
                 line += f" (截止: {t['deadline']})"
@@ -327,7 +342,7 @@ if __name__ == "__main__":
     for d in demos:
         print(f"> {d}")
         success, msg = run_harness(d)
-        print(f"  {'✓' if success else '✗'} {msg}\n")
+        print(f"  {'[OK]' if success else '[FAIL]'} {msg}\n")
 
     print("=== 评估模式 ===")
     run_eval()

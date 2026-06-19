@@ -2,6 +2,17 @@
 
 All notable changes to CampusTask are documented in this file.
 
+## [0.3.0] — 2026-06-19
+
+### Added
+- `list_tasks(sort_by="priority")` — sort task list by priority (high → medium → low)
+- `list_tasks(overdue_only=True)` — filter to show only overdue todo tasks
+- CLI: `--sort priority` option and `--overdue` flag for `list` command
+- AI harness: mock_model supports priority/overdue natural language queries
+- AI harness: architecture diagram and 800-word reflection report
+- eval_cases.json expanded to 13 cases
+- Test cases for priority sorting and overdue filtering
+
 ## [0.2.1] — 2026-06-12
 
 ### Fixed

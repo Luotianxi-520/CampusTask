@@ -27,7 +27,8 @@ def build_parser():
     # list
     p = sub.add_parser("list", help="查看任务列表")
     p.add_argument("--status", choices=["todo", "done"], help="按状态过滤")
-    p.add_argument("--sort", choices=["deadline"], help="排序方式")
+    p.add_argument("--sort", choices=["deadline", "priority"], help="排序方式")
+    p.add_argument("--overdue", action="store_true", help="只显示逾期任务")
 
     # done
     p = sub.add_parser("done", help="标记任务为完成")
@@ -81,9 +82,10 @@ def dispatch(args):
         tasks = tm.list_tasks(
             status_filter=args.status,
             sort_by=args.sort,
+            overdue_only=args.overdue,
         )
         if not tasks:
-            label = args.status if args.status else "任何"
+            label = "逾期" if args.overdue else (args.status if args.status else "任何")
             print(f"暂无{label}任务。")
             return 0
         for task in tasks:
